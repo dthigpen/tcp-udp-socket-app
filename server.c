@@ -22,7 +22,7 @@ int main(int argc, char *argv[]){
 
 
     if(argc != 3){
-        printf("usage: %s [tcp/udp] [port 1024-65535]\n",argv[0]);
+        printf("usage: %s [port 1024-65535] [tcp/udp]\n",argv[0]);
         exit(0);
     }else{
         //set protocol type and create socket
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]){
             protocol = UDP;
             socketfd = socket(AF_INET, SOCK_DGRAM, 0);
         }else{
-            printf("usage: %s [tcp/udp] [port]\n",argv[0]);
+            printf("usage: %s [port 1024-65535] [tcp/udp]\n",argv[0]);
             exit(0);
         }
         if(socketfd < 0){
@@ -43,7 +43,7 @@ int main(int argc, char *argv[]){
         memset((char *) &server_addr,sizeof(server_addr),0);
         
         //set port number
-        port_number = atoi(argv[2]);
+        port_number = atoi(argv[1]);
         if (port_number < 1024 || port_number > 65535){
             printf("Invalid port number. Port range: 1024-65535\n");
             exit(0);
