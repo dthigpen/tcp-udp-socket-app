@@ -14,18 +14,19 @@ int main(int argc, char **argv){
 	struct hostent *server;
 	char buffer[256];
 	int TCP = 1;
+	int rw_code;
 	if (argc != 4)
 	{
 		printf("Error must have 3 arguments: server name, port number, and TCP/UDP} \n");
 		exit(0);
 	}
-	portno = atoi(arv[2]);
+	portno = atoi(argv[2]);
 	// initialize socket for TCP or UDP connection
-	if(argv[3] == "UDP"  || arv[3] == "udp"){
+	if(argv[3] == "UDP"  || argv[3] == "udp"){
 		TCP = 0;
 		socketfd = socket(AF_INET,SOCK_DGRAM,0);
 	}
-	else if (argv[3] == "TCP"  || arv[3] == "tcp"){
+	else if (argv[3] == "TCP"  || argv[3] == "tcp"){
 		TCP = 1;
 		socketfd = socket(AF_INET,SOCK_STREAM,0);
 	}
@@ -53,12 +54,12 @@ int main(int argc, char **argv){
     printf("Please enter the message: ");
     memset((void *)(buffer),0,256);
     fgets(buffer,255,stdin);
-    n = write(socketfd, buffer, strlen(buffer));
-    if (n < 0) 
+    rw_code = write(socketfd, buffer, strlen(buffer));
+    if (rw_code < 0) 
          error("ERROR writing to socket");
     memset((void *)(buffer),0,256);
-    n = read(socketfd, buffer, 255);
-    if (n < 0) 
+    rw_code = read(socketfd, buffer, 255);
+    if (rw_code < 0) 
          error("ERROR reading from socket");
     printf("%s\n", buffer);
     close(socketfd);
