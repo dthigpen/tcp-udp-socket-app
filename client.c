@@ -22,11 +22,11 @@ int main(int argc, char **argv){
 	}
 	portno = atoi(argv[2]);
 	// initialize socket for TCP or UDP connection
-	if(argv[3] == "UDP"  || argv[3] == "udp"){
+	if(strcmp(argv[3],"UDP")  || strcmp(argv[3], "udp")){
 		TCP = 0;
 		socketfd = socket(AF_INET,SOCK_DGRAM,0);
 	}
-	else if (argv[3] == "TCP"  || argv[3] == "tcp"){
+	else if(strcmp(argv[3],"TCP")  || strcmp(argv[3], "tcp")){
 		TCP = 1;
 		socketfd = socket(AF_INET,SOCK_STREAM,0);
 	}
