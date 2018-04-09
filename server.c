@@ -9,8 +9,8 @@
 const int MAX_CONNECTIONS = 5;
 const int READ_BUFFER_SIZE = 256;
 enum Protocol{
-    TCP,
-    UDP
+    UDP,
+    TCP
 }protocol;
 
 int main(int argc, char *argv[]){
@@ -70,7 +70,7 @@ int main(int argc, char *argv[]){
         printf("[%s]: connection to %s on port %d",inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
         send(new_socketfd,"Successful connection\n",13,0);
     
-        memset((char *) &buffer, sizeof(buffer),0);
+        memset((char *) &buffer, 0,sizeof(buffer));
         read_result = read(new_socketfd, buffer, READ_BUFFER_SIZE - 1);
         if(read_result < 0){
             printf("Error reading message from client\n");
