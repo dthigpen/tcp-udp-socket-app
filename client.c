@@ -15,7 +15,7 @@ int main(int argc, char const *argv[])
     struct sockaddr_in serv_addr;
     char *hello = "Connection Requested from client";
     char buffer[1024] = {0};
-	char *filename = argv[1];
+	const char *filename = argv[1];
 
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
@@ -41,7 +41,7 @@ int main(int argc, char const *argv[])
         return -1;
     }
     send(sock , hello , strlen(hello) , 0 );
-    printf("Request sent\n");
+    printf("Connection request sent\n");
 	
 	send(sock , filename , strlen(filename) , 0 );
 	printf("Sent request for filename\n");
