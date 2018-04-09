@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 #define PORT 8080
   
 int main(int argc, char const *argv[])
@@ -11,8 +13,10 @@ int main(int argc, char const *argv[])
     struct sockaddr_in address;
     int sock = 0, valread;
     struct sockaddr_in serv_addr;
-    char *hello = "Hello from client";
+    char *hello = "Connection Requested from client";
     char buffer[1024] = {0};
+	char *filename = argv[1];
+
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         printf("\n Socket creation error \n");
@@ -37,7 +41,10 @@ int main(int argc, char const *argv[])
         return -1;
     }
     send(sock , hello , strlen(hello) , 0 );
-    printf("Hello message sent\n");
+    printf("Request sent\n");
+	
+	send(sock , filename , strlen(filename) , 0 );
+	printf("Sent request for filename\n");
     valread = read( sock , buffer, 1024);
     printf("%s\n",buffer );
     return 0;

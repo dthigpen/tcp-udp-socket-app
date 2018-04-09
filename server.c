@@ -4,7 +4,10 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 #define PORT 8080
+
 int main(int argc, char const *argv[])
 {
     int server_fd, new_socket, valread;
@@ -12,8 +15,9 @@ int main(int argc, char const *argv[])
     int opt = 1;
     int addrlen = sizeof(address);
     char buffer[1024] = {0};
-    char *hello = "Connection granted to client";
-      
+    char *connection = "Connection granted to client";
+    FILE* jpeg;
+  
     // Creating socket file descriptor
     //TCP
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
@@ -53,7 +57,13 @@ int main(int argc, char const *argv[])
     }
     valread = read( new_socket , buffer, 1024);
     printf("%s\n",buffer );
-    send(new_socket , hello , strlen(hello) , 0 );
-    printf("Any more requests?\n");
+    send(new_socket , connection , strlen(connection) , 0 );
+    
+  	memset(buffer, '\0',sizeof(buffer));
+  	// read in the name of the file to send
+  	valread = read(new_socket,buffer,1024);
+  	jpeg = fopen(buffer,"rb");
+  	
+  	printf("Any more requests?\n");
     return 0;
 }
