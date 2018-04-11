@@ -46,6 +46,26 @@ int main(int argc, char const *argv[])
 	send(sock , filename , strlen(filename) , 0 );
 	printf("Sent request for filename\n");
     valread = read( sock , buffer, 1024);
-    printf("%s\n",buffer );
+    printf("%s\n",buffer,1024 );
+  	memset(&buffer,'\0',strlen(buffer));
+  	int size = read(sock, buffer, 1024);
+  	int bytes_received = 0;
+  	FILE *jpeg;
+  	const char* added = ".jpg";
+  	char* out_file;
+  	out_file = malloc(strlen(filename) + 4 + 1);
+  	jpeg = fopen(out_file,"wb");
+    
+  	while(bytes_received < size){
+        memset(&buffer,'\0',strlen(buffer));	
+        valread = read(sock,buffer,1024);
+      	if(valread < 0){
+          printf("Error recieving packet\n");
+        }
+      	fwrite(buffer,1,strlen(buffer)+1, jpeg);
+    	printf("hello\n");
+        bytes_received += valread;	
+    }
+  	close(jpeg);
     return 0;
 }
