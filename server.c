@@ -82,7 +82,6 @@ int main(int argc, char const *argv[])
       	send(new_socket,(void *) &size_str,sizeof(size_str),0);
       	printf("Sending file size: %s\n",size_str);
       	while(num_bytes_sent < size){
-          printf("bytes sent: %d size %d\n",num_bytes_sent,size);
           bytes_sent = send(new_socket,jpeg,1024,0);
           if(bytes_sent < 0)
           {
@@ -91,8 +90,8 @@ int main(int argc, char const *argv[])
             // printf("bytes sent: %d size %d\n",num_bytes_sent,size);
             continue;
           }
-          printf("...");
           num_bytes_sent += bytes_sent;
+          printf("bytes sent: %d / %d\n",num_bytes_sent,size);
           fseek(jpeg,bytes_sent,SEEK_CUR);
         }
       	printf("File sent\n");
