@@ -57,18 +57,24 @@ int main(int argc, char const *argv[])
   	FILE *jpeg;
   	const char* added = ".jpg";
   	char* out_file;
+    int fail_count = 0;
   	// out_file = malloc(strlen(filename) + 4 + 1);
   	jpeg = fopen("out_file.jpg","wb");
   	while(bytes_received < size){
         memset(&buffer,'\0',strlen(buffer));	
         valread = read(sock,buffer,1024);
-      	if(valread < 0){
-          printf("Error recieving packet\n");
-          continue;
+      	if(valread < 0){ //an error has occured
+            printf("Error recieving packet\n");
+            fail_count++;
+            continue;
+        }else if(valread == 0){ //the connection has been closed
+            printf("Error the connection has been closed by the server\n");
+            exit(1);
+        }else{
+            fwrite(buffer,1,strlen(buffer)+1, jpeg);
+            bytes_received += valread;	
+            printf("bytes received: %d / %d (%d dropped)\n",bytes_received,size, fail_count);
         }
-      	fwrite(buffer,1,strlen(buffer)+1, jpeg);
-        bytes_received += valread;	
-        printf("bytes received: %d / %d (%d\%)\n",bytes_received,size, (bytes_received)/(double)(size*8));
     }
     printf("File received\n");
   	close(jpeg);
