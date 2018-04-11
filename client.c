@@ -48,24 +48,29 @@ int main(int argc, char const *argv[])
     valread = read( sock , buffer, 1024);
     printf("%s\n",buffer,1024 );
   	memset(&buffer,'\0',strlen(buffer));
-  	int size = read(sock, buffer, 1024);
+    //next message should be file size
+    int read_code = read(sock, buffer, 1024);
+    printf("%s %d\n",buffer,strlen(buffer));
+    int size = atoi(buffer);
+    printf("Received size of file: %d bits\n", size);
   	int bytes_received = 0;
   	FILE *jpeg;
   	const char* added = ".jpg";
   	char* out_file;
-  	out_file = malloc(strlen(filename) + 4 + 1);
-  	jpeg = fopen(out_file,"wb");
-    
+  	// out_file = malloc(strlen(filename) + 4 + 1);
+  	jpeg = fopen("out_file.jpg","wb");
   	while(bytes_received < size){
         memset(&buffer,'\0',strlen(buffer));	
         valread = read(sock,buffer,1024);
       	if(valread < 0){
           printf("Error recieving packet\n");
+          continue;
         }
       	fwrite(buffer,1,strlen(buffer)+1, jpeg);
-    	printf("hello\n");
         bytes_received += valread;	
+        printf("bytes received: %d / %d (%d\%)\n",bytes_received,size, (bytes_received)/(double)(size*8));
     }
+    printf("File received\n");
   	close(jpeg);
     return 0;
 }
