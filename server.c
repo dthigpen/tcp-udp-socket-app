@@ -6,8 +6,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#define PORT 8080
+#define PORT 8088
 #define BUFFSIZE 1024
+
+
+int sendall(int s,char* buffer, int*len);
 
 int main(int argc, char const *argv[])
 {
@@ -56,12 +59,12 @@ int main(int argc, char const *argv[])
         perror("accept");
         exit(EXIT_FAILURE);
     }
-  
+    memset(buffer, '\0',BUFFSIZE);
     valread = read( new_socket , buffer, BUFFSIZE);
     printf("%s\n",buffer );
     send(new_socket , connection , strlen(connection) , 0 );
     
-  	memset(buffer, '\0',sizeof(buffer));
+  	memset(buffer, '\0',BUFFSIZE);
   	// read in the name of the file to send
   	valread = read(new_socket,buffer,BUFFSIZE);
   	jpeg = fopen(buffer,"rb");
@@ -69,7 +72,7 @@ int main(int argc, char const *argv[])
         //send file
       	int size = 0;
       	int num_bytes_sent = 0;
-      	int result;
+      	int result = 0;
       	int bytes_sent = 0;
       	int max_bytes_to_send = BUFFSIZE;
       	int count = 0;
@@ -77,34 +80,47 @@ int main(int argc, char const *argv[])
       	fseek(jpeg, 0, SEEK_END);
       	size = ftell(jpeg);
       	rewind(jpeg);
+        
+        //SEND SIZE INFO
         //send the size of the file to the client first
-        // char* size_str[16];
-        // sprintf(size_str,"%d",size);
-      	// send(new_socket,size_str,sizeof(size_str),0);
-      	// printf("Sending file size: %s\n",size_str);
+        char* size_str[16];
+        sprintf(size_str,"%d",size);
+      	send(new_socket,size_str,sizeof(size_str),0);
+      	printf("Sending file size: %s\n",size_str);
+        //SEND SIZE INFO
+        
         printf("Calculated File size: %d", size);
-        memset(buffer, '\0',BUFFSIZE);
+        
       	while(num_bytes_sent < size){
-            
+            memset(buffer, '\0',BUFFSIZE);
             int bytes_left = size - ftell(jpeg);
-            if(bytes_left >= max_bytes_to_send){
-                bytes_sent = send(new_socket,jpeg,max_bytes_to_send,0);
+            int bytes_read = fread(&buffer,sizeof(char),BUFFSIZE,jpeg);
+            if(bytes_read == 0){
+                printf("Finished reading\n");
+                break;
+            }
+            if(bytes_read < 0){
+                printf("Error reading file\n");
+                //TODO file read error
+                break;
+            }
+            //the last section of the file may be smaller than the buffer size
+            int send_size = bytes_left < BUFFSIZE ? bytes_read : BUFFSIZE;
+            //send all of the data in the buffer so far
+            if(send_size != BUFFSIZE){
+                printf("new send size: %d\n",send_size);
+            }
+            result = sendall(new_socket,buffer,&send_size);
+            if(result == -1){
+                printf("Failed to send buffered data\n");
+                //TODO failed to send error
+                break;
             }else{
-                bytes_sent = send(new_socket,jpeg,bytes_left,0);
+                num_bytes_sent += BUFFSIZE;
+                printf("bytes sent: %d / %d\n",num_bytes_sent,size);
             }
-            
-            if(bytes_sent < 0)
-            {
-            count++;
-            printf("Fail count: %d\n",count);
-            // printf("bytes sent: %d size %d\n",num_bytes_sent,size);
-            continue;
-            }
-            sent_count++;
-            num_bytes_sent += bytes_sent;
-            printf("bytes sent: %d / %d (%d total packets)\n",num_bytes_sent,size, sent_count);
-            fseek(jpeg,bytes_sent,SEEK_CUR);
         }
+        printf("after loop bytes sent: %d / %d\n",num_bytes_sent,size);
         printf("Fail count: %d\n",count);
         printf("File sent\n");
         
@@ -119,3 +135,21 @@ int main(int argc, char const *argv[])
   	fclose(jpeg);  
   	return 0;
 }
+
+int sendall(int s, char* buffer, int *len)
+{
+    int total = 0;        // how many bytes we've sent
+    int bytesleft = *len; // how many we have left to send
+    int n;
+
+    while(total < *len) {
+        n = send(s, buffer, bytesleft, 0);
+        if (n == -1) { break; }
+        total += n;
+        bytesleft -= n;
+    }
+
+    *len = total; // return number actually sent here
+
+    return n==-1?-1:0; // return -1 on failure, 0 on success
+} 

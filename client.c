@@ -6,7 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#define PORT 8080
+#define PORT 8088
 #define BUFFSIZE 1024
 
 
@@ -53,12 +53,13 @@ int main(int argc, char const *argv[])
     valread = recv( sock , buffer, BUFFSIZE,0);
     printf("%s\n",buffer);
   	memset(&buffer,'\0',BUFFSIZE);
+    //RECEIVE SIZE INFO
     //next message should be file size
-    // int read_code = recv(sock, buffer, BUFFSIZE,0);
-    // printf("%s\n",buffer);
-    // int size = atoi(buffer);
-    // int size = 1073741824;
-    int size = 97682;
+    int read_code = recv(sock, buffer, BUFFSIZE,0);
+    printf("%s\n",buffer);
+    int size = atoi(buffer);
+    //RECEIVE SIZE INFO
+    
     printf("Received size of file: %d bytes\n", size);
   	int bytes_received = 0;
   	FILE *jpeg;
@@ -98,7 +99,7 @@ int main(int argc, char const *argv[])
             }
             bytes_received += valread;	
             printf("bytes received: %d / %d (%d received %d dropped)\n",bytes_received,size,packets_received, fail_count);
-            printf("%s\n",buffer);
+            // printf("%s\n",buffer);
         }
     }
     
