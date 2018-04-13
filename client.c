@@ -19,6 +19,7 @@ int main(int argc, char const *argv[])
     struct sockaddr_in serv_addr;
     char *hello = "Connection Requested from client";
     char buffer[BUFFSIZE] = {0};
+    char work_buffer[BUFFSIZE*2];
 	const char *filename = argv[1];
     
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -57,7 +58,7 @@ int main(int argc, char const *argv[])
     // printf("%s\n",buffer);
     // int size = atoi(buffer);
     // int size = 1073741824;
-    int size = 2560;
+    int size = 97682;
     printf("Received size of file: %d bytes\n", size);
   	int bytes_received = 0;
   	FILE *jpeg;
@@ -65,11 +66,13 @@ int main(int argc, char const *argv[])
     int fail_count = 0;
     int write_fail_count = 0;
     int packets_received = 0;
-    
+    int wb_offset = 0;
   	jpeg = fopen("out_file.jpg","wb");
+    memset(&work_buffer,'\0',BUFFSIZE*2);	
   	while(bytes_received < size){
         
-        memset(&buffer,'\0',BUFFSIZE);	
+        memset(&buffer,'\0',BUFFSIZE);
+        // valread = recv(sock,work_buffer+wb_offset,BUFFSIZE,0);
         valread = recv(sock,buffer,BUFFSIZE,0);
       	if(valread < 0){ //an error has occured
             printf("Error recieving packet\n");
@@ -79,16 +82,26 @@ int main(int argc, char const *argv[])
             printf("Server has closed the connection\n");
             break;
         }else{
+
+            wb_offset += valread;
+            if(wb_offset > BUFFSIZE){
+                //then a full packet has been received
+                //TODO write first BUFFSIZE of work_buffer to file
+                //TODO shift over work_buffer by BUFF_SIZE
+            }else{
+                //still a partial packet OR last packet
+            }
             packets_received++;
             int write_error = fwrite(buffer,sizeof(char),valread, jpeg);
             if(write_error <= 0){
                 write_fail_count++;
             }
             bytes_received += valread;	
-            printf("%d\n",valread);
+            printf("bytes received: %d / %d (%d received %d dropped)\n",bytes_received,size,packets_received, fail_count);
+            printf("%s\n",buffer);
         }
     }
-    printf("bytes received: %d / %d (%d received %d dropped)\n",bytes_received,size,packets_received, fail_count);
+    
     memset(&buffer,'\0',BUFFSIZE);
     printf("Write fails: %d\n", write_fail_count);
     printf("File received\n");
