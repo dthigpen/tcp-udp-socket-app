@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #define PORT 8080
+#define BUFFSIZE 1024
 
 int main(int argc, char const *argv[])
 {
@@ -14,8 +15,8 @@ int main(int argc, char const *argv[])
     struct sockaddr_in address;
     int opt = 1;
     int addrlen = sizeof(address);
-    char buffer[1024] = {0};
-    char *connection = "Connection granted to client";
+    char buffer[BUFFSIZE];
+    char *connection = "Connection granted to client\n";
     FILE* jpeg;
   
     // Creating socket file descriptor
@@ -56,13 +57,13 @@ int main(int argc, char const *argv[])
         exit(EXIT_FAILURE);
     }
   
-    valread = read( new_socket , buffer, 1024);
+    valread = read( new_socket , buffer, BUFFSIZE);
     printf("%s\n",buffer );
     send(new_socket , connection , strlen(connection) , 0 );
     
   	memset(buffer, '\0',sizeof(buffer));
   	// read in the name of the file to send
-  	valread = read(new_socket,buffer,1024);
+  	valread = read(new_socket,buffer,BUFFSIZE);
   	jpeg = fopen(buffer,"rb");
   	if(jpeg != NULL){
         //send file
@@ -70,40 +71,51 @@ int main(int argc, char const *argv[])
       	int num_bytes_sent = 0;
       	int result;
       	int bytes_sent = 0;
-      	int max_bytes_to_send = 1024;
+      	int max_bytes_to_send = BUFFSIZE;
       	int count = 0;
-        
+        int sent_count = 0;
       	fseek(jpeg, 0, SEEK_END);
       	size = ftell(jpeg);
       	rewind(jpeg);
         //send the size of the file to the client first
-        char* size_str[9];
-        sprintf(size_str,"%d",size);
-      	send(new_socket,(void *) &size_str,sizeof(size_str),0);
-      	printf("Sending file size: %s\n",size_str);
+        // char* size_str[16];
+        // sprintf(size_str,"%d",size);
+      	// send(new_socket,size_str,sizeof(size_str),0);
+      	// printf("Sending file size: %s\n",size_str);
+        printf("Calculated File size: %d", size);
+        memset(buffer, '\0',BUFFSIZE);
       	while(num_bytes_sent < size){
-          bytes_sent = send(new_socket,jpeg,1024,0);
-          if(bytes_sent < 0)
-          {
+            
+            int bytes_left = size - ftell(jpeg);
+            if(bytes_left >= max_bytes_to_send){
+                bytes_sent = send(new_socket,jpeg,max_bytes_to_send,0);
+            }else{
+                bytes_sent = send(new_socket,jpeg,bytes_left,0);
+            }
+            
+            if(bytes_sent < 0)
+            {
             count++;
             printf("Fail count: %d\n",count);
             // printf("bytes sent: %d size %d\n",num_bytes_sent,size);
             continue;
-          }
-          num_bytes_sent += bytes_sent;
-          printf("bytes sent: %d / %d\n",num_bytes_sent,size);
-          fseek(jpeg,bytes_sent,SEEK_CUR);
+            }
+            sent_count++;
+            num_bytes_sent += bytes_sent;
+            printf("bytes sent: %d / %d (%d total packets)\n",num_bytes_sent,size, sent_count);
+            fseek(jpeg,bytes_sent,SEEK_CUR);
         }
-      	printf("File sent\n");
-      
-      
+        printf("Fail count: %d\n",count);
+        printf("File sent\n");
+        
+
     }else{
       	//send neg ack
       	printf("File does not exist\n");
     }
-  
-  
+
+    shutdown(new_socket, 1);
   	printf("Any more requests?\n");
-  	close(jpeg);  
+  	fclose(jpeg);  
   	return 0;
 }
