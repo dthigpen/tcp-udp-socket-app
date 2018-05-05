@@ -107,7 +107,7 @@ int main(int argc, char const *argv[])
   
   	// read in the name of the file to send
   	valread = read(new_socket,buffer,BUFFSIZE);
-  	jpeg = fopen(buffer,"rb+");
+  	jpeg = fopen(buffer,"rb");
   	
   	if(jpeg == NULL){
 		// if file does not exist send NACK
@@ -122,6 +122,7 @@ int main(int argc, char const *argv[])
         memset(buffer, '\0',BUFFSIZE);
         memcpy(buffer,md5_result,BUFFSIZE);
         send(new_socket,buffer,BUFFSIZE,0);
+        memset(buffer, '\0',BUFFSIZE);
  
       	int size = 0;
       	int num_bytes_sent = 0;
@@ -168,13 +169,16 @@ int main(int argc, char const *argv[])
         }
         printf("bytes sent: %d / %d\n",num_bytes_sent,size);
         printf("File sent\n");
+      
         //wait for checksum ack or nack
         memset(buffer, '\0',BUFFSIZE);
         valread = recv(new_socket,buffer,5,0);
         if(buffer[0] == 'N'){
             printf("Client reports a checksum mismatch. Send corrupted\n");
-        }else{
+        }else if(buffer[0] == 'A'){
             printf("Client reports checksums match. Send successful\n");
+        }else{
+            printf("Client reports a checksum mismatch. Send corrupted\n");
         }
 
     }

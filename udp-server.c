@@ -92,8 +92,8 @@ void recievePacketStruct(char receive_buffer[BUFF_SIZE], packet_t *packet){
 	memcpy(&packet->seq,receive_buffer+0,4);
 	memcpy(&packet->filesize,receive_buffer+4,4);
 	memcpy(&packet->flags,receive_buffer+8,2);
-	memset(packet+10,'\0',PACKET_DATA_SIZE);
-    memcpy(&packet->data,receive_buffer+10,PACKET_DATA_SIZE);
+	memset(&packet->data,'\0',PACKET_DATA_SIZE);
+	memcpy(&packet->data,receive_buffer+10,PACKET_DATA_SIZE);
 }
 
 

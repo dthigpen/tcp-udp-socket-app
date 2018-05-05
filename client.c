@@ -96,6 +96,7 @@ int main(int argc, char const *argv[])
 		printf("Error file does not exist in server.\n");
 		exit(1);
 	}
+  
 	//Receive the checksum
     memset(&buffer,'\0',BUFFSIZE);
     valread = recv(sock,buffer,BUFFSIZE,0);
@@ -107,7 +108,6 @@ int main(int argc, char const *argv[])
     int read_code = recv(sock, buffer, MSGSIZE,0);
     printf("%s\n",buffer);
     int size = atoi(buffer);
-    //RECEIVE SIZE INFO
     printf("Received size of file: %d bytes\n", size);
   	int bytes_received = 0;
   	FILE *jpeg;
@@ -116,7 +116,7 @@ int main(int argc, char const *argv[])
     int write_fail_count = 0;
     int packets_received = 0;
     
-  	jpeg = fopen("out_file.jpg","rb+");
+  	jpeg = fopen("out_file.jpg","wb");
   	
   	while(bytes_received < size){
         
@@ -130,6 +130,7 @@ int main(int argc, char const *argv[])
         }else if(valread == 0){ //the connection has been closed
             printf("Server has closed the connection\n");
             break;
+
         }else{
             packets_received++;
             int write_error = fwrite(buffer,sizeof(char),valread, jpeg);
@@ -142,6 +143,7 @@ int main(int argc, char const *argv[])
         }
     }
     fclose(jpeg);
+  
     //check the received md5 with the calculated one
     jpeg = fopen("out_file.jpg","rb");
     generate_md5(jpeg, calculated_md5);

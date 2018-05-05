@@ -10,8 +10,7 @@
 #include <openssl/md5.h>
 
 #define IP_PROTOCOL 0
-#define IP_ADDRESS "127.0.0.1" // localhost
-#define PORT_NO 15050
+
 
 #define PACKET_SIZE 1024
 #define PACKET_DATA_SIZE 1014
@@ -143,14 +142,13 @@ int writePacketData(FILE* file, int file_size, packet_t packet){
 
 
 // driver code
-int main()
+int main(int argc, char const *argv[])
 {
 	int sockfd, nBytes;
 	struct sockaddr_in addr_con;
 	int addrlen = sizeof(addr_con);
-	addr_con.sin_family = AF_INET;
-	addr_con.sin_port = htons(PORT_NO);
-	addr_con.sin_addr.s_addr = inet_addr(IP_ADDRESS);
+	const char* ip_address;
+	int port_number;
 	char net_buf[BUFF_SIZE];
 	char name_buf[PACKET_DATA_SIZE];
 	FILE* fp;
@@ -162,6 +160,19 @@ int main()
 	int packet_count = 0;
 	char received_md5[MD5_DIGEST_LENGTH];
 	char calculated_md5[MD5_DIGEST_LENGTH];
+
+	if(argc < 3){
+      printf("Error need exactly 2 arguments. Arg1: Server-IP Arg2: Port#\n");
+        exit(0);
+    }else{
+        ip_address = argv[1];
+        port_number = atoi(argv[2]);
+    }
+	addr_con.sin_family = AF_INET;
+	addr_con.sin_port = htons(port_number);
+	addr_con.sin_addr.s_addr = inet_addr(ip_address);
+
+
 
 	// socket()
 	sockfd = socket(AF_INET, SOCK_DGRAM,
